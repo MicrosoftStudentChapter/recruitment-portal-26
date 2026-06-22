@@ -8,26 +8,51 @@ export default function Signup({ onSwitchView, onRegistered }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-    const trimmedConfirmPassword = confirmPassword.trim();
+  const trimmedEmail = email.trim();
+  const trimmedPassword = password.trim();
+  const trimmedConfirmPassword = confirmPassword.trim();
 
-    if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
-      setError("All fields are required.");
-      return;
+  if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+    setError("All fields are required.");
+    return;
+  }
+
+  if (trimmedPassword !== trimmedConfirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
+
+  const response = await fetch(
+    "http://localhost:5000/api/auth/signup",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: trimmedEmail,
+        password: trimmedPassword,
+      }),
     }
+  );
 
-    if (trimmedPassword !== trimmedConfirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+  const data = await response.json();
 
-    setError("");
-    onRegistered?.({ email: trimmedEmail, password: trimmedPassword });
-  };
+  localStorage.setItem(
+    "accessToken",
+    data.session.accessToken
+  );
+
+  localStorage.setItem(
+    "refreshToken",
+    data.session.refreshToken
+  );
+
+  onRegistered?.(data);
+};
 
   return (
     <main className="auth-page auth-page--compact">
