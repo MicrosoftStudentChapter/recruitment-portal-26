@@ -142,6 +142,39 @@ export default function CandidateDetails({
     }
   };
 
+  const token = localStorage.getItem("accessToken");
+
+  const response = await fetch(
+    "http://localhost:5000/api/auth/candidate-details",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        applicationNumber,
+        email,
+        name,
+        dob,
+        attendance,
+        joinReason,
+        primaryDepartment,
+        secondaryDepartment,
+        otherSocieties,
+        recruitReason,
+      }),
+    }
+  );
+
+  const result = await response.json();
+
+  if (response.ok) {
+    onSwitchView?.("dashboard");
+  } else {
+    alert(result.message);
+  }
+};
   return (
     <AuthPanel
       className="candidate-panel"

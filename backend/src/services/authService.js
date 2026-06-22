@@ -75,18 +75,36 @@ export async function registerUser(email, password) {
 }
 
 export async function loginUser(email, password) {
+
+  // Admin Login
+  if (
+    email === process.env.ADMIN_EMAIL &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    return {
+      data: {
+        isAdmin: true,
+        redirectTo: "/admin-dashboard",
+      },
+    };
+  }
+
   const { data, error } = await signIn(email, password);
 
   if (error) {
     return { error };
   }
 
+  const profile = await fetchCandidateProfile(
+    data.user.id
+  );
+
   return {
     data: buildSessionResponse(
       data.session,
       data.user,
-      await fetchCandidateProfile(data.user.id),
-      "/dashboard",
+      profile,
+      "/dashboard"
     ),
   };
 }

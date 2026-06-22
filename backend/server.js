@@ -7,6 +7,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./src/routes/authRoute.js";
 import dashboardRoutes from "./src/routes/dashboardRoute.js";
+import adminRoutes from "./src/routes/adminRoute.js";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/dashboard", dashboardRoutes);
 
 app.use((err, _req, res, _next) => {

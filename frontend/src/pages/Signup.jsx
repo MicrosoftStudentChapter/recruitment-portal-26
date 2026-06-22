@@ -19,24 +19,50 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const email = values.email.trim();
-    const password = values.password.trim();
-    const confirmPassword = values.confirmPassword.trim();
+  const trimmedEmail = email.trim();
+  const trimmedPassword = password.trim();
+  const trimmedConfirmPassword = confirmPassword.trim();
 
-    if (!email || !password || !confirmPassword) {
-      setError("All fields are required.");
-      return;
+  if (!trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+    setError("All fields are required.");
+    return;
+  }
+
+  if (trimmedPassword !== trimmedConfirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
+
+  const response = await fetch(
+    "http://localhost:5000/api/auth/signup",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: trimmedEmail,
+        password: trimmedPassword,
+      }),
     }
+  );
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+  const data = await response.json();
 
-    setLoading(true);
-    setError("");
+  localStorage.setItem(
+    "accessToken",
+    data.session.accessToken
+  );
+
+  localStorage.setItem(
+    "refreshToken",
+    data.session.refreshToken
+  );
+
+  onRegistered?.(data);
+};
 
     try {
       await signup({
