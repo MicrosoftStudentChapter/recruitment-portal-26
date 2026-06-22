@@ -1,12 +1,22 @@
-import { useState } from "react";
-import MLSCLogo from "../assets/MLSC-logo.png";
 import "../App.css";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function Signup({ onSwitchView, onRegistered }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+import AuthForm from "../components/AuthForm";
+import useFormFields from "../hooks/useFormFields";
+import { signup } from "../lib/api";
+
+export default function Signup() {
+  const navigate = useNavigate();
+
+  const [values, handleChange] = useFormFields({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -54,72 +64,30 @@ export default function Signup({ onSwitchView, onRegistered }) {
   onRegistered?.(data);
 };
 
+    try {
+      await signup({
+        email,
+        password,
+      });
+
+      navigate("/candidate-details");
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className="auth-page auth-page--compact">
-      <section className="auth-panel" aria-labelledby="signup-title">
-        <div className="panel-header">
-          <img className="panel-logo" src={MLSCLogo} alt="MLSC logo" />
-          <h2 id="signup-title">Sign up</h2>
-          <p className="panel-copy">
-            Create your recruitment portal account to begin the application
-            flow.
-          </p>
-        </div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              required
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Create Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Set your password"
-              value={password}
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="confirm-password">Confirm Password</label>
-            <input
-              id="confirm-password"
-              type="password"
-              placeholder="Re-enter your password"
-              value={confirmPassword}
-              required
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
-
-          {error ? <p className="form-error">{error}</p> : null}
-
-          <button type="submit" className="primary-button">
-            Register
-          </button>
-        </form>
-
-        <div className="panel-footer">
-          <span>Already registered?</span>
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => onSwitchView?.("login")}
-          >
-            Log in
-          </button>
-        </div>
-      </section>
-    </main>
+    <AuthForm
+      mode="signup"
+      values={values}
+      error={error}
+      loading={loading}
+      onChange={handleChange}
+      onSubmit={handleSubmit}
+      footerText="Already registered?"
+      footerAction={() => navigate("/login")}
+    />
   );
 }

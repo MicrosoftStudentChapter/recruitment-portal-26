@@ -1,6 +1,6 @@
-import { useState } from "react";
-import MLSCLogo from "../assets/MLSC-logo.png";
 import "../App.css";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login({ onSwitchView }) {
   const [email, setEmail] = useState("");
