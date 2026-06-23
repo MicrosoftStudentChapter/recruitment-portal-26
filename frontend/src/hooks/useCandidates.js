@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { getCandidates, updateCandidateStatus } from "../lib/api";
+import {
+  getCandidates,
+  updateCandidateStatus,
+  updateCandidateAttendance,
+  deleteCandidate,
+} from "../lib/api";
 
 import { adminSocket } from "../lib/socket";
-
 import { upsertCandidate } from "../utils/candidateHelpers";
 
 export function useCandidates() {
@@ -12,9 +16,7 @@ export function useCandidates() {
   async function fetchCandidates() {
     try {
       setLoading(true);
-
       const data = await getCandidates();
-
       setCandidates(data);
     } catch (error) {
       console.error(error);
@@ -27,17 +29,38 @@ export function useCandidates() {
   async function updateStatus(id, status) {
     try {
       const response = await updateCandidateStatus(id, status);
-
       const updatedCandidate = response.data;
-
       setCandidates((current) => upsertCandidate(current, updatedCandidate));
-
       return updatedCandidate;
     } catch (error) {
       console.error(error);
       alert(error.message || "Failed to update status.");
-
       return null;
+    }
+  }
+
+  async function updateAttendance(id, present) {
+    try {
+      const response = await updateCandidateAttendance(id, present);
+      const updatedCandidate = response.data;
+      setCandidates((current) => upsertCandidate(current, updatedCandidate));
+      return updatedCandidate;
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Failed to update attendance.");
+      return null;
+    }
+  }
+
+  async function removeCandidate(id) {
+    try {
+      await deleteCandidate(id);
+      setCandidates((current) => current.filter((c) => c.id !== id));
+      return true;
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Failed to delete candidate.");
+      return false;
     }
   }
 
@@ -50,17 +73,22 @@ export function useCandidates() {
       setCandidates((current) => upsertCandidate(current, candidate));
     }
 
+    function handleCandidateDeleted({ id }) {
+      setCandidates((current) => current.filter((c) => c.id !== id));
+    }
+
     adminSocket.on("candidate:submitted", handleCandidateChange);
-
     adminSocket.on("candidate:updated", handleCandidateChange);
-
+    adminSocket.on("candidate:deleted", handleCandidateDeleted);
+    adminSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+    });
     adminSocket.connect();
 
     return () => {
       adminSocket.off("candidate:submitted", handleCandidateChange);
-
       adminSocket.off("candidate:updated", handleCandidateChange);
-
+      adminSocket.off("candidate:deleted", handleCandidateDeleted);
       adminSocket.disconnect();
     };
   }, []);
@@ -70,5 +98,7 @@ export function useCandidates() {
     loading,
     fetchCandidates,
     updateStatus,
+    updateAttendance,
+    removeCandidate,
   };
 }

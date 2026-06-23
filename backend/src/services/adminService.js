@@ -6,10 +6,7 @@ export async function fetchAllCandidates() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data;
 }
 
@@ -21,11 +18,34 @@ export async function updateStatus(id, status) {
     .select()
     .single();
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data;
+}
+
+export async function updateAttendance(id, present) {
+  const updatePayload = {
+    quiz_attended: present,
+    quiz_attended_at: present ? new Date().toISOString() : null,
+  };
+
+  const { data, error } = await supabaseAdmin
+    .from("candidate_profiles")
+    .update(updatePayload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteCandidate(id) {
+  const { error } = await supabaseAdmin
+    .from("candidate_profiles")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
 }
 
 export async function markQuizAttendance(qrToken) {
@@ -40,10 +60,7 @@ export async function markQuizAttendance(qrToken) {
   }
 
   if (candidate.quiz_attended) {
-    return {
-      alreadyPresent: true,
-      candidate,
-    };
+    return { alreadyPresent: true, candidate };
   }
 
   const { data: updatedCandidate, error: updateError } = await supabaseAdmin
@@ -56,42 +73,24 @@ export async function markQuizAttendance(qrToken) {
     .select()
     .single();
 
-  if (updateError) {
-    throw updateError;
-  }
+  if (updateError) throw updateError;
 
-  return {
-    alreadyPresent: false,
-    candidate: updatedCandidate,
-  };
+  return { alreadyPresent: false, candidate: updatedCandidate };
 }
 
 export async function getAttendanceStatsService() {
   const { count: totalCandidates, error: totalError } = await supabaseAdmin
     .from("candidate_profiles")
-    .select("*", {
-      count: "exact",
-      head: true,
-    });
+    .select("*", { count: "exact", head: true });
 
-  if (totalError) {
-    throw totalError;
-  }
+  if (totalError) throw totalError;
 
   const { count: presentCandidates, error: presentError } = await supabaseAdmin
     .from("candidate_profiles")
-    .select("*", {
-      count: "exact",
-      head: true,
-    })
+    .select("*", { count: "exact", head: true })
     .eq("quiz_attended", true);
 
-  if (presentError) {
-    throw presentError;
-  }
+  if (presentError) throw presentError;
 
-  return {
-    totalCandidates,
-    presentCandidates,
-  };
+  return { totalCandidates, presentCandidates };
 }

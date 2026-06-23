@@ -46,9 +46,7 @@ export function refreshSession(payload) {
 export function saveCandidateDetails(payload, token) {
   return request("/api/auth/candidate-details", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
 }
@@ -61,6 +59,19 @@ export function updateCandidateStatus(id, status) {
   return request(`/api/admin/candidates/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export function updateCandidateAttendance(id, present) {
+  return request(`/api/admin/candidates/${id}/attendance`, {
+    method: "PATCH",
+    body: JSON.stringify({ present }),
+  });
+}
+
+export function deleteCandidate(id) {
+  return request(`/api/admin/candidates/${id}`, {
+    method: "DELETE",
   });
 }
 
@@ -78,9 +89,7 @@ export async function getDashboard(signal) {
 export function markAttendance(qrToken) {
   return request("/api/admin/attendance", {
     method: "POST",
-    body: JSON.stringify({
-      qrToken,
-    }),
+    body: JSON.stringify({ qrToken }),
   });
 }
 
