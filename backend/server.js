@@ -26,6 +26,13 @@ const io = new Server(httpServer, {
 
 app.set("io", io);
 
+io.on("connection", (socket) => {
+  console.log(`Socket connected: ${socket.id}`);
+  socket.on("disconnect", (reason) => {
+    console.log(`Socket disconnected: ${socket.id} — ${reason}`);
+  });
+});
+
 app.use(
   cors({
     origin: clientOrigin,
@@ -35,7 +42,11 @@ app.use(
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 app.use(hpp());
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  }),
+);
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,

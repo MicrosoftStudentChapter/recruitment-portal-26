@@ -106,29 +106,64 @@ export default function CandidateDetails({
     });
   }, [registrationData, setValues]);
 
-  const renderField = ([id, name, label, type, placeholder]) => (
-    <FormField
-      id={id}
-      key={id}
-      label={label}
-      name={name}
-      onChange={handleChange}
-      options={
-        type === "select"
-          ? attendanceOptions
-          : type === "department-select"
-            ? departmentOptions
-            : undefined
+  const renderField = ([id, name, label, type, placeholder]) => {
+    let options;
+    if (type === "select") {
+      options = attendanceOptions;
+    } else if (type === "department-select") {
+      options =
+        name === "secondaryDepartment"
+          ? secondaryDeptOptions
+          : departmentOptions;
+    }
+
+    // When primary dept changes, clear secondary if it matches
+    const onChange = (e) => {
+      handleChange(e);
+      if (
+        name === "primaryDepartment" &&
+        e.target.value === values.secondaryDepartment
+      ) {
+        setValues((prev) => ({ ...prev, secondaryDepartment: "" }));
       }
-      placeholder={placeholder}
-      required
-      type={type === "select" || type === "department-select" ? undefined : type}
-      value={values[name]}
-    />
+    };
+
+    return (
+      <FormField
+        id={id}
+        key={id}
+        label={label}
+        name={name}
+        onChange={onChange}
+        options={options}
+        placeholder={placeholder}
+        required
+        type={
+          type === "select" || type === "department-select" ? undefined : type
+        }
+        value={values[name]}
+      />
+    );
+  };
+
+  // Secondary dept options exclude whatever primary is set to
+  const secondaryDeptOptions = departmentOptions.filter(
+    (opt) => opt.value === "" || opt.value !== values.primaryDepartment,
   );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (
+      values.primaryDepartment &&
+      values.secondaryDepartment &&
+      values.primaryDepartment === values.secondaryDepartment
+    ) {
+      setError(
+        "Primary and secondary departments cannot be the same. Please choose different departments.",
+      );
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -143,10 +178,7 @@ export default function CandidateDetails({
     }
 
     try {
-      const response = await saveCandidateDetails(
-        values,
-        token,
-      );
+      const response = await saveCandidateDetails(values, token);
 
       const successMessage = "Your details have been saved successfully.";
 

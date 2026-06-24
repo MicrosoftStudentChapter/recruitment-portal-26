@@ -46,9 +46,16 @@ export function refreshSession(payload) {
 export function saveCandidateDetails(payload, token) {
   return request("/api/auth/candidate-details", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+}
+
+// Candidate self-edit (all fields except password, blocked when form_locked)
+export function updateCandidateDetails(payload, token) {
+  return request("/api/admin/candidate-details", {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
 }
@@ -61,6 +68,47 @@ export function updateCandidateStatus(id, status) {
   return request(`/api/admin/candidates/${id}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export function updateCandidateAttendance(id, present) {
+  return request(`/api/admin/candidates/${id}/attendance`, {
+    method: "PATCH",
+    body: JSON.stringify({ present }),
+  });
+}
+
+// Toggle form lock — admin only
+export function lockCandidateForm(id, locked) {
+  return request(`/api/admin/candidates/${id}/lock`, {
+    method: "PATCH",
+    body: JSON.stringify({ locked }),
+  });
+}
+
+// Individual unlock override — admin only, used when global lock is active
+export function individualUnlockCandidateForm(id, unlocked) {
+  return request(`/api/admin/candidates/${id}/individual-unlock`, {
+    method: "PATCH",
+    body: JSON.stringify({ unlocked }),
+  });
+}
+
+export function deleteCandidate(id) {
+  return request(`/api/admin/candidates/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// Global form lock — admin only
+export function getGlobalLock() {
+  return request("/api/admin/global-lock");
+}
+
+export function setGlobalLock(locked) {
+  return request("/api/admin/global-lock", {
+    method: "PATCH",
+    body: JSON.stringify({ locked }),
   });
 }
 
@@ -78,9 +126,7 @@ export async function getDashboard(signal) {
 export function markAttendance(qrToken) {
   return request("/api/admin/attendance", {
     method: "POST",
-    body: JSON.stringify({
-      qrToken,
-    }),
+    body: JSON.stringify({ qrToken }),
   });
 }
 
