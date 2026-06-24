@@ -511,44 +511,41 @@ body.drawer-open {
 }
 
 .tag {
-  padding: 4px 11px;
+  padding: 3px 10px;
   border-radius: 999px;
-  color: white;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(99, 115, 140, 0.08);
+  color: #4a5568;
+  border: 1px solid rgba(99, 115, 140, 0.18);
 }
 
-/* Department tag colors — one unique color per department */
-.tag--tech {
-  background: #2663e7;
-} /* Tech       — blue       */
-.tag--design {
-  background: #9333ea;
-} /* Design     — purple     */
-.tag--marketing {
-  background: #f97316;
-} /* Marketing  — orange     */
-.tag--content {
-  background: #0891b2;
-} /* Content    — cyan       */
+/* All department tags share the same neutral style */
+.tag--tech,
+.tag--design,
+.tag--marketing,
+.tag--content,
 .tag--media {
-  background: #16a34a;
-} /* Media      — green      */
+  background: rgba(99, 115, 140, 0.08);
+  color: #4a5568;
+  border: 1px solid rgba(99, 115, 140, 0.18);
+}
 
-/* Secondary dept shown slightly muted */
+/* Secondary dept is slightly more faded */
 .tag--secondary-dept {
-  opacity: 0.78;
+  background: rgba(99, 115, 140, 0.05);
+  color: #718096;
+  border-color: rgba(99, 115, 140, 0.12);
 }
 
 /* Legacy class names (used elsewhere in the codebase) */
-.technical {
-  background: #2663e7;
-}
-.design {
-  background: #9333ea;
-}
+.technical,
+.design,
 .marketing {
-  background: #f97316;
+  background: rgba(99, 115, 140, 0.08);
+  color: #4a5568;
+  border: 1px solid rgba(99, 115, 140, 0.18);
 }
 
 /* Card footer */
@@ -1526,4 +1523,34 @@ body.drawer-open {
   .confirm-actions {
     flex-direction: column-reverse;
   }
+}
+
+/* ── Global lock button styles ── */
+.btn--danger {
+  background: #ef4444;
+  color: #fff;
+  border: 1px solid #dc2626;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.38);
+}
+
+.btn--warning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #92400e;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+}
+
+.btn--warning:hover:not(:disabled) {
+  background: rgba(234, 179, 8, 0.22);
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
 }

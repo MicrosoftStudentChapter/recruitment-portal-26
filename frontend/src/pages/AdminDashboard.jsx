@@ -23,6 +23,10 @@ export default function AdminDashboard() {
     updateAttendance,
     removeCandidate,
     toggleLock,
+    individualUnlock,
+    globalLocked,
+    globalLockLoading,
+    toggleGlobalLock,
   } = useCandidates();
 
   const [showScanner, setShowScanner] = useState(false);
@@ -89,6 +93,49 @@ export default function AdminDashboard() {
           </div>
 
           <div className="header-actions">
+            {/* ── Global Lock Toggle ── */}
+            <button
+              className={`btn ${globalLocked ? "btn--danger" : "btn--warning"}`}
+              onClick={() => toggleGlobalLock(!globalLocked)}
+              disabled={globalLockLoading}
+              title={
+                globalLocked
+                  ? "Click to unlock registrations globally"
+                  : "Click to lock all registrations globally"
+              }
+            >
+              {globalLocked ? (
+                <>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  {globalLockLoading ? "Unlocking…" : "Locked (Click to Unlock)"}
+                </>
+              ) : (
+                <>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                  </svg>
+                  {globalLockLoading ? "Locking…" : "Lock All Forms"}
+                </>
+              )}
+            </button>
             <button
               className="btn btn--secondary"
               onClick={() => setShowScanner(true)}
@@ -159,6 +206,40 @@ export default function AdminDashboard() {
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
       />
+
+      {/* ── Global lock banner ── */}
+      {globalLocked && (
+        <div
+          style={{
+            margin: "0 0 16px",
+            padding: "12px 20px",
+            background: "#fef2f2",
+            border: "1px solid #fca5a5",
+            borderRadius: 10,
+            color: "#b91c1c",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          Global Form Lock is active — all candidate forms are locked and new
+          sign-ups are disabled.
+        </div>
+      )}
 
       {/* ── Candidates section ── */}
       <div className="section-header">
@@ -263,6 +344,7 @@ export default function AdminDashboard() {
 
       <CandidateDrawer
         candidate={selectedCandidate}
+        globalLocked={globalLocked}
         onClose={() => setSelectedCandidate(null)}
         onUpdateStatus={async (id, status) => {
           const updated = await updateStatus(id, status);
@@ -278,6 +360,10 @@ export default function AdminDashboard() {
         }}
         onToggleLock={async (id, locked) => {
           const updated = await toggleLock(id, locked);
+          if (updated) setSelectedCandidate(updated);
+        }}
+        onIndividualUnlock={async (id, unlocked) => {
+          const updated = await individualUnlock(id, unlocked);
           if (updated) setSelectedCandidate(updated);
         }}
       />

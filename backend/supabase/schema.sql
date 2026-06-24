@@ -18,6 +18,7 @@ create table if not exists public.candidate_profiles (
   qr_token uuid default gen_random_uuid(),
   quiz_attended boolean not null default false,
   quiz_attended_at timestamptz,
+  form_locked boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -70,3 +71,20 @@ on public.candidate_profiles
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+create table if not exists public.app_settings (
+  key   text primary key,
+  value text not null default ''
+);
+
+insert into public.app_settings (key, value)
+values ('global_form_locked', 'false')
+on conflict (key) do nothing;
+
+alter table public.app_settings enable row level security;
+
+drop policy if exists "No public access to app_settings" on public.app_settings;
+create policy "No public access to app_settings"
+on public.app_settings
+for all
+using (false);

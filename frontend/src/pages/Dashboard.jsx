@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { updateCandidateDetails } from "../lib/api";
 import mlscLogo from "../assets/MLSC-logo.png";
@@ -181,8 +181,6 @@ function QRCard({ qrToken }) {
                 src={qrUrlLarge}
                 alt="Entry QR code enlarged"
                 className="cd-qr-img-large"
-                width={400}
-                height={400}
               />
               <p
                 className="cd-qr-hint"
@@ -488,6 +486,7 @@ function EditModal({ profile, token, onClose, onSaved, onLocked }) {
 
 export default function Dashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { candidateProfile, authSession, saveProfile, logout } = useAuth();
   const [profile, setProfile] = useState(candidateProfile ?? {});
   const [showEdit, setShowEdit] = useState(false);
@@ -557,7 +556,7 @@ export default function Dashboard() {
             <p className="cd-header-sub">Your application dashboard</p>
           </div>
         </div>
-        <button className="cd-btn cd-btn--danger-ghost" onClick={logout}>
+        <button className="cd-btn cd-btn--danger-ghost" onClick={() => { logout(); navigate("/login"); }}>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -748,21 +747,6 @@ export default function Dashboard() {
           </svg>
           <h3>Test Schedule</h3>
         </div>
-
-        {profile.quiz_attended && (
-          <div className="cd-attendance-banner cd-attendance-banner--present">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Attendance marked — you were present for the test.
-          </div>
-        )}
 
         <div className="cd-schedule-grid">
           <div className="cd-schedule-item">

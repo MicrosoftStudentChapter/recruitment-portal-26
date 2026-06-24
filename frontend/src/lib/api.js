@@ -86,9 +86,29 @@ export function lockCandidateForm(id, locked) {
   });
 }
 
+// Individual unlock override — admin only, used when global lock is active
+export function individualUnlockCandidateForm(id, unlocked) {
+  return request(`/api/admin/candidates/${id}/individual-unlock`, {
+    method: "PATCH",
+    body: JSON.stringify({ unlocked }),
+  });
+}
+
 export function deleteCandidate(id) {
   return request(`/api/admin/candidates/${id}`, {
     method: "DELETE",
+  });
+}
+
+// Global form lock — admin only
+export function getGlobalLock() {
+  return request("/api/admin/global-lock");
+}
+
+export function setGlobalLock(locked) {
+  return request("/api/admin/global-lock", {
+    method: "PATCH",
+    body: JSON.stringify({ locked }),
   });
 }
 

@@ -7,6 +7,7 @@ import {
   upsertCandidateProfile,
   validateCandidatePayload,
 } from "../models/candidateModel.js";
+import { getGlobalLock } from "./adminService.js";
 
 export function buildSessionResponse(
   session,
@@ -51,6 +52,17 @@ export async function fetchCandidateProfile(userId) {
 }
 
 export async function registerUser(email, password) {
+  // Reject new signups when registrations are globally closed
+  const globallyLocked = await getGlobalLock();
+  if (globallyLocked) {
+    return {
+      error: {
+        message:
+          "Registrations are currently closed. New sign-ups are not allowed.",
+      },
+    };
+  }
+
   const { data: createdUser, error: createError } = await createUser(
     email,
     password,
@@ -138,6 +150,16 @@ export async function userFromToken(token) {
 }
 
 export async function saveCandidate(body, user) {
+  // Reject form submissions when registrations are globally closed
+  const globallyLocked = await getGlobalLock();
+  if (globallyLocked) {
+    return {
+      status: 403,
+      error:
+        "Registrations are currently closed. No new submissions are allowed.",
+    };
+  }
+
   const missingFields = validateCandidatePayload(body);
 
   if (missingFields.length) {

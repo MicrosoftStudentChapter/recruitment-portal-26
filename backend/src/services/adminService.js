@@ -98,15 +98,63 @@ export async function getAttendanceStatsService() {
 // ── Form lock ──────────────────────────────────────────────────────────────
 
 export async function toggleFormLock(id, locked) {
+  // When unlocking an individual candidate, also clear the individual_unlock
+  // override so it starts fresh. When locking, clear the override too (no
+  // point keeping it if the admin explicitly locks them individually).
   const { data, error } = await supabaseAdmin
     .from("candidate_profiles")
-    .update({ form_locked: locked })
+    .update({ form_locked: locked, individual_unlock: false })
     .eq("id", id)
     .select()
     .single();
 
   if (error) throw error;
   return data;
+}
+
+// ── Individual unlock override (used when global lock is active) ───────────
+
+export async function setIndividualUnlock(id, unlocked) {
+  // individual_unlock = true means "exempt this candidate from the global lock"
+  // We also clear form_locked when granting the override so the form opens.
+  const updatePayload = unlocked
+    ? { individual_unlock: true, form_locked: false }
+    : { individual_unlock: false };
+
+  const { data, error } = await supabaseAdmin
+    .from("candidate_profiles")
+    .update(updatePayload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// ── Global form lock ───────────────────────────────────────────────────────
+
+export async function getGlobalLock() {
+  const { data, error } = await supabaseAdmin
+    .from("app_settings")
+    .select("value")
+    .eq("key", "global_form_locked")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.value === "true";
+}
+
+export async function setGlobalLock(locked) {
+  const { error } = await supabaseAdmin
+    .from("app_settings")
+    .upsert(
+      { key: "global_form_locked", value: String(locked) },
+      { onConflict: "key" }
+    );
+
+  if (error) throw error;
+  return locked;
 }
 
 // ── Candidate self-edit ────────────────────────────────────────────────────
@@ -123,14 +171,47 @@ const EDITABLE_FIELDS = [
 ];
 
 export async function updateCandidateDetails(userId, body) {
-  // First check if the form is locked
-  const { data: existing, error: fetchError } = await supabaseAdmin
-    .from("candidate_profiles")
-    .select("id, form_locked")
-    .eq("user_id", userId)
-    .single();
+  // Fetch the candidate profile. individual_unlock may not exist yet if the
+  // DB migration hasn't run — handle that gracefully with a fallback query.
+  let existing = null;
 
-  if (fetchError || !existing) throw new Error("Candidate profile not found.");
+  const { data: profileData, error: fetchError } = await supabaseAdmin
+    .from("candidate_profiles")
+    .select("id, form_locked, individual_unlock")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (fetchError) {
+    // If the error is about the individual_unlock column not existing yet,
+    // fall back to a query without it so existing installs keep working.
+    const msg = (fetchError.message || "").toLowerCase();
+    const isColumnMissing =
+      msg.includes("individual_unlock") ||
+      fetchError.code === "42703";
+
+    if (!isColumnMissing) throw new Error("Failed to fetch candidate profile.");
+
+    const { data: fallback, error: fallbackError } = await supabaseAdmin
+      .from("candidate_profiles")
+      .select("id, form_locked")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (fallbackError) throw new Error("Failed to fetch candidate profile.");
+    existing = fallback ? { ...fallback, individual_unlock: false } : null;
+  } else {
+    existing = profileData;
+  }
+
+  if (!existing) throw new Error("Candidate profile not found.");
+
+  // Check global lock first — but respect individual_unlock override
+  const globallyLocked = await getGlobalLock();
+  if (globallyLocked && !existing.individual_unlock)
+    throw new Error(
+      "Registrations are closed. No further changes can be made.",
+    );
+
   if (existing.form_locked)
     throw new Error(
       "Your form has been locked by the admin. No further changes can be made.",

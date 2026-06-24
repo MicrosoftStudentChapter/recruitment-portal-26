@@ -3,11 +3,13 @@ import ConfirmDialog from "./ConfirmDialog";
 
 export default function CandidateDrawer({
   candidate,
+  globalLocked,
   onClose,
   onUpdateStatus,
   onUpdateAttendance,
   onDelete,
   onToggleLock,
+  onIndividualUnlock,
 }) {
   const [dialog, setDialog] = useState(null);
   const scrollYRef = useRef(0);
@@ -30,6 +32,7 @@ export default function CandidateDrawer({
 
   const isPresent = candidate.quiz_attended === true;
   const isLocked = candidate.form_locked === true;
+  const isIndividuallyUnlocked = candidate.individual_unlock === true;
 
   function confirmAction(config, action) {
     setDialog({ ...config, _action: action });
@@ -39,6 +42,226 @@ export default function CandidateDrawer({
     const action = dialog._action;
     setDialog(null);
     action();
+  }
+
+  // ── Form Access section renderer ──────────────────────────────────────────
+  // Three scenarios:
+  //   A) Global lock OFF → standard individual lock/unlock
+  //   B) Global lock ON, candidate individually unlocked → can re-lock override
+  //   C) Global lock ON, candidate NOT individually unlocked → offer to unlock individually
+
+  function renderFormAccessSection() {
+    if (!globalLocked) {
+      // Scenario A: Normal individual lock controls
+      return (
+        <div className="actions" style={{ flexDirection: "column", gap: 8 }}>
+          <p style={{ fontSize: "0.82rem", color: "#5a7896", marginBottom: 4 }}>
+            {isLocked
+              ? "The candidate's form is currently locked. They cannot make any edits."
+              : "The candidate can currently edit their form. Lock it to prevent further changes."}
+          </p>
+          <button
+            className={isLocked ? "attend-present" : "reject"}
+            style={{ flex: "none", width: "100%" }}
+            onClick={() =>
+              confirmAction(
+                isLocked
+                  ? {
+                      variant: "warning",
+                      title: "Unlock Candidate Form?",
+                      message: `${candidate.full_name} will be able to edit their application details again.`,
+                      confirmLabel: "Unlock Form",
+                    }
+                  : {
+                      variant: "danger",
+                      title: "Lock Candidate Form?",
+                      message: `${candidate.full_name} will no longer be able to edit their application. You can unlock it later.`,
+                      confirmLabel: "Lock Form",
+                    },
+                () => onToggleLock(candidate.id, !isLocked),
+              )
+            }
+          >
+            {isLocked ? (
+              <>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ marginRight: 6, verticalAlign: "middle" }}
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                </svg>
+                Unlock Form
+              </>
+            ) : (
+              <>
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ marginRight: 6, verticalAlign: "middle" }}
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Lock Form
+              </>
+            )}
+          </button>
+        </div>
+      );
+    }
+
+    // Scenario B & C: Global lock is active
+    if (isIndividuallyUnlocked) {
+      // Scenario B: Already granted individual override — show revoke option
+      return (
+        <div className="actions" style={{ flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 8,
+              padding: "10px 12px",
+              borderRadius: 8,
+              background: "rgba(34,197,94,0.08)",
+              border: "1px solid rgba(34,197,94,0.25)",
+              marginBottom: 4,
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#16a34a"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ marginTop: 1, flexShrink: 0 }}
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+            </svg>
+            <p style={{ fontSize: "0.82rem", color: "#15803d", margin: 0, lineHeight: 1.45 }}>
+              This candidate has been individually unlocked and can edit their
+              form despite the global lock being active.
+            </p>
+          </div>
+          <button
+            className="reject"
+            style={{ flex: "none", width: "100%" }}
+            onClick={() =>
+              confirmAction(
+                {
+                  variant: "danger",
+                  title: "Revoke Individual Unlock?",
+                  message: `${candidate.full_name} will lose their individual override and be blocked by the global lock again.`,
+                  confirmLabel: "Revoke Unlock",
+                },
+                () => onIndividualUnlock(candidate.id, false),
+              )
+            }
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ marginRight: 6, verticalAlign: "middle" }}
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Revoke Individual Unlock
+          </button>
+        </div>
+      );
+    }
+
+    // Scenario C: Global lock active, no override yet — offer to grant it
+    return (
+      <div className="actions" style={{ flexDirection: "column", gap: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 8,
+            padding: "10px 12px",
+            borderRadius: 8,
+            background: "rgba(239,68,68,0.07)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            marginBottom: 4,
+          }}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#b91c1c"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ marginTop: 1, flexShrink: 0 }}
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <p style={{ fontSize: "0.82rem", color: "#b91c1c", margin: 0, lineHeight: 1.45 }}>
+            Global lock is active — this candidate cannot edit their form. You
+            can grant them an individual exception to override the global lock.
+          </p>
+        </div>
+        <button
+          className="attend-present"
+          style={{ flex: "none", width: "100%" }}
+          onClick={() =>
+            confirmAction(
+              {
+                variant: "warning",
+                title: "Unlock Form for This Candidate?",
+                message: `${candidate.full_name} will be able to edit their application even though the global lock is active. You can revoke this at any time.`,
+                confirmLabel: "Unlock Individually",
+              },
+              () => onIndividualUnlock(candidate.id, true),
+            )
+          }
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ marginRight: 6, verticalAlign: "middle" }}
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+          </svg>
+          Unlock Form for This Candidate
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -58,8 +281,40 @@ export default function CandidateDrawer({
             <h1>{candidate.full_name}</h1>
             <p>{candidate.email}</p>
 
-            {/* Form lock badge */}
-            {isLocked && (
+            {/* Form lock / individual unlock badge */}
+            {isIndividuallyUnlocked && globalLocked ? (
+              <span
+                style={{
+                  marginTop: 8,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "4px 11px",
+                  borderRadius: 999,
+                  background: "rgba(34,197,94,0.1)",
+                  border: "1px solid rgba(34,197,94,0.3)",
+                  color: "#15803d",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+                </svg>
+                Individually Unlocked
+              </span>
+            ) : isLocked ? (
               <span
                 style={{
                   marginTop: 8,
@@ -91,7 +346,7 @@ export default function CandidateDrawer({
                 </svg>
                 Form Locked
               </span>
-            )}
+            ) : null}
           </div>
 
           <div className="details-grid-modal">
@@ -225,75 +480,7 @@ export default function CandidateDrawer({
 
           {/* ── Form Lock ── */}
           <div className="drawer-section-label">Form Access</div>
-          <div className="actions" style={{ flexDirection: "column", gap: 8 }}>
-            <p
-              style={{ fontSize: "0.82rem", color: "#5a7896", marginBottom: 4 }}
-            >
-              {isLocked
-                ? "The candidate's form is currently locked. They cannot make any edits."
-                : "The candidate can currently edit their form. Lock it to prevent further changes."}
-            </p>
-            <button
-              className={isLocked ? "attend-present" : "reject"}
-              style={{ flex: "none", width: "100%" }}
-              onClick={() =>
-                confirmAction(
-                  isLocked
-                    ? {
-                        variant: "warning",
-                        title: "Unlock Candidate Form?",
-                        message: `${candidate.full_name} will be able to edit their application details again.`,
-                        confirmLabel: "Unlock Form",
-                      }
-                    : {
-                        variant: "danger",
-                        title: "Lock Candidate Form?",
-                        message: `${candidate.full_name} will no longer be able to edit their application. You can unlock it later.`,
-                        confirmLabel: "Lock Form",
-                      },
-                  () => onToggleLock(candidate.id, !isLocked),
-                )
-              }
-            >
-              {isLocked ? (
-                <>
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ marginRight: 6, verticalAlign: "middle" }}
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-                  </svg>
-                  Unlock Form
-                </>
-              ) : (
-                <>
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ marginRight: 6, verticalAlign: "middle" }}
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Lock Form
-                </>
-              )}
-            </button>
-          </div>
+          {renderFormAccessSection()}
 
           {/* ── Danger Zone ── */}
           <div className="drawer-section-label drawer-section-label--danger">

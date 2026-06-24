@@ -769,6 +769,10 @@
   .cd-modal {
     border-radius: 20px;
   }
+
+  .cd-modal-backdrop {
+    padding: 12px;
+  }
 }
 
 /* ── Toast stack ─────────────────────────────────────────────────────────── */
@@ -940,6 +944,9 @@
 
 .cd-qr-img-large {
   display: block;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
   border-radius: 12px;
   border: 1px solid rgba(96, 165, 250, 0.2);
   box-shadow: 0 4px 24px rgba(15, 64, 117, 0.1);

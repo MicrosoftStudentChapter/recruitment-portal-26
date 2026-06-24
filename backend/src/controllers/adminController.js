@@ -6,7 +6,10 @@ import {
   markQuizAttendance,
   getAttendanceStatsService,
   toggleFormLock,
+  setIndividualUnlock,
   updateCandidateDetails,
+  getGlobalLock,
+  setGlobalLock,
 } from "../services/adminService.js";
 import { bearerToken, userFromToken } from "../services/authService.js";
 
@@ -128,7 +131,66 @@ export async function lockCandidateForm(req, res) {
   }
 }
 
-// ── Candidate self-edit (auth required) ───────────────────────────────────
+// ── Individual unlock override (admin only, while global lock is active) ──
+
+export async function individualUnlockCandidate(req, res) {
+  try {
+    const { id } = req.params;
+    const { unlocked } = req.body;
+
+    if (typeof unlocked !== "boolean") {
+      return res.status(400).json({ message: "`unlocked` must be a boolean" });
+    }
+
+    const data = await setIndividualUnlock(id, unlocked);
+    req.app.get("io")?.emit("candidate:updated", data);
+
+    return res.json({
+      message: unlocked
+        ? "Candidate individually unlocked (global lock override)"
+        : "Individual unlock override removed",
+      data,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: error.message || "Failed to update individual unlock",
+    });
+  }
+}
+
+// ── Global form lock ───────────────────────────────────────────────────────
+
+export async function getGlobalLockStatus(req, res) {
+  try {
+    const locked = await getGlobalLock();
+    return res.json({ locked });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get global lock status" });
+  }
+}
+
+export async function setGlobalLockStatus(req, res) {
+  try {
+    const { locked } = req.body;
+
+    if (typeof locked !== "boolean") {
+      return res.status(400).json({ message: "`locked` must be a boolean" });
+    }
+
+    await setGlobalLock(locked);
+    req.app.get("io")?.emit("global:lock", { locked });
+
+    return res.json({
+      message: locked ? "Global form lock enabled" : "Global form lock disabled",
+      locked,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to update global lock" });
+  }
+}
 
 export async function updateOwnDetails(req, res) {
   try {
