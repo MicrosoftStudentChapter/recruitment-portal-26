@@ -1,12 +1,13 @@
 import { useMemo, useState, useEffect } from "react";
 import "./AdminDashboard.css";
 
-import mlscLogo from "../assets/mlsc-logo.png";
+import mlscLogo from "../assets/MLSC-logo.png";
 
 import CandidateCard from "../components/CandidateCard";
 import CandidateDrawer from "../components/CandidateDrawer";
 import StatsGrid from "../components/StatsGrid";
 import AttendanceScanner from "../components/AttendanceScanner";
+import SlotDistribution from "../components/SlotDistribution";
 
 import { useCandidates } from "../hooks/useCandidates";
 import { useCandidateFilters } from "../hooks/useCandidateFilters";
@@ -27,6 +28,18 @@ export default function AdminDashboard() {
     globalLocked,
     globalLockLoading,
     toggleGlobalLock,
+    slotSummary,
+    slotLoading,
+    runDistributeSlots,
+    runClearSlots,
+    slotSchedules,
+    schedulesLoading,
+    saveDayDate,
+    saveSlotTime,
+    addDay,
+    removeDay,
+    addSlot,
+    removeSlot,
   } = useCandidates();
 
   const [showScanner, setShowScanner] = useState(false);
@@ -117,7 +130,9 @@ export default function AdminDashboard() {
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
-                  {globalLockLoading ? "Unlocking…" : "Locked (Click to Unlock)"}
+                  {globalLockLoading
+                    ? "Unlocking…"
+                    : "Locked (Click to Unlock)"}
                 </>
               ) : (
                 <>
@@ -241,6 +256,23 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ── Slot Distribution ── */}
+      <SlotDistribution
+        summary={slotSummary}
+        slotLoading={slotLoading}
+        totalCandidates={candidates.length}
+        onDistribute={runDistributeSlots}
+        onClear={runClearSlots}
+        schedules={slotSchedules}
+        schedulesLoading={schedulesLoading}
+        onSaveDayDate={saveDayDate}
+        onSaveSlotTime={saveSlotTime}
+        onAddDay={addDay}
+        onRemoveDay={removeDay}
+        onAddSlot={addSlot}
+        onRemoveSlot={removeSlot}
+      />
+
       {/* ── Candidates section ── */}
       <div className="section-header">
         <div className="section-title">
@@ -302,6 +334,8 @@ export default function AdminDashboard() {
                 key={candidate.id}
                 candidate={candidate}
                 onSelect={setSelectedCandidate}
+                slotSummary={slotSummary}
+                slotSchedules={slotSchedules}
               />
             ))
           ) : (
@@ -345,6 +379,8 @@ export default function AdminDashboard() {
       <CandidateDrawer
         candidate={selectedCandidate}
         globalLocked={globalLocked}
+        slotSummary={slotSummary}
+        slotSchedules={slotSchedules}
         onClose={() => setSelectedCandidate(null)}
         onUpdateStatus={async (id, status) => {
           const updated = await updateStatus(id, status);
