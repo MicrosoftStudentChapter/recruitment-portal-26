@@ -113,8 +113,8 @@ export default function AdminDashboard() {
               disabled={globalLockLoading}
               title={
                 globalLocked
-                  ? "Click to unlock registrations globally"
-                  : "Click to lock all registrations globally"
+                  ? "Click to unlock all registrations"
+                  : "Click to lock all registrations"
               }
             >
               {globalLocked ? (
@@ -251,8 +251,7 @@ export default function AdminDashboard() {
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          Global Form Lock is active — all candidate forms are locked and new
-          sign-ups are disabled.
+          All candidate forms are locked and new sign-ups are disabled.
         </div>
       )}
 

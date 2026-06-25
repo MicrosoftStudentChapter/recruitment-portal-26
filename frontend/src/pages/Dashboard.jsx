@@ -162,12 +162,16 @@ function formatUnlockMoment(date) {
   return `${day}, ${time}`;
 }
 
-const SUPPORT = { email: "mlsc@thapar.edu", phone: "+91 9720257315" };
+const SUPPORT = {
+  email: "msc@thapar.edu",
+  phone: "+91 9720257315",
+  phone2: "+91 9914589960",
+};
 
 const FAQS = [
   {
     q: "When will the recruitment test be conducted?",
-    a: "The test will be held on the date and time shown in the Test Schedule card above.",
+    a: "The test will be held on the date and time shown on the dashboard above.",
   },
   {
     q: "Can I change my department preference?",
@@ -175,7 +179,7 @@ const FAQS = [
   },
   {
     q: "What should I bring for the test?",
-    a: "Bring your college ID card and any materials mentioned in the recruitment guidelines.",
+    a: "Bring your college ID card, laptop and any materials mentioned in the recruitment guidelines.",
   },
   {
     q: "How will I know my selection status?",
@@ -877,57 +881,203 @@ export default function Dashboard() {
         </div>
 
         <div className="cd-details-grid">
+          {/* ── Personal Info ── */}
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Application No.</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Application No.
+            </span>
             <span className="cd-detail-value cd-detail-value--mono">
               {profile.application_number}
             </span>
           </div>
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Full Name</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Full Name
+            </span>
             <span className="cd-detail-value">{profile.full_name}</span>
           </div>
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Email</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              Email
+            </span>
             <span className="cd-detail-value">{profile.email}</span>
           </div>
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Date of Birth</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Date of Birth
+            </span>
             <span className="cd-detail-value">{profile.date_of_birth}</span>
           </div>
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Attendance</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Attendance
+            </span>
             <span className="cd-detail-value">
               {ATTENDANCE_OPTIONS.find((o) => o.value === profile.attendance)
                 ?.label ?? profile.attendance}
             </span>
           </div>
+
+          <div className="cd-details-divider" />
+
+          {/* ── Department Preferences ── */}
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Primary Preference</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+              Primary Preference
+            </span>
             <div className="cd-dept-badges">
               <DeptBadge dept={profile.primary_department} />
             </div>
           </div>
           <div className="cd-detail-item">
-            <span className="cd-detail-label">Secondary Preference</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="8 12 12 16 16 12" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+              </svg>
+              Secondary Preference
+            </span>
             <div className="cd-dept-badges">
               <DeptBadge dept={profile.secondary_department} secondary />
             </div>
           </div>
+
+          <div className="cd-details-divider" />
+
+          {/* ── Long-form responses ── */}
           <div className="cd-detail-item cd-detail-item--wide">
-            <span className="cd-detail-label">Why MLSC?</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              Why MLSC?
+            </span>
             <span className="cd-detail-value cd-detail-value--prose">
               {profile.join_reason}
             </span>
           </div>
           <div className="cd-detail-item cd-detail-item--wide">
-            <span className="cd-detail-label">Other Societies</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Other Societies
+            </span>
             <span className="cd-detail-value cd-detail-value--prose">
               {profile.other_societies}
             </span>
           </div>
           <div className="cd-detail-item cd-detail-item--wide">
-            <span className="cd-detail-label">Why Should We Recruit You?</span>
+            <span className="cd-detail-label">
+              <svg
+                className="cd-detail-label-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="8" r="6" />
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+              </svg>
+              Why Should We Recruit You?
+            </span>
             <span className="cd-detail-value cd-detail-value--prose">
               {profile.recruit_reason}
             </span>
@@ -1204,6 +1354,29 @@ export default function Dashboard() {
                 style={{ color: "#2663e7", textDecoration: "none" }}
               >
                 {SUPPORT.phone}
+              </a>
+            </div>
+          </div>
+          <div className="cd-support-item">
+            <div className="cd-support-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+            </div>
+            <div className="cd-support-info">
+              <span className="cd-detail-label">Phone (Alt)</span>
+              <a
+                href={`tel:${SUPPORT.phone2.replace(/\s/g, "")}`}
+                className="cd-detail-value"
+                style={{ color: "#2663e7", textDecoration: "none" }}
+              >
+                {SUPPORT.phone2}
               </a>
             </div>
           </div>

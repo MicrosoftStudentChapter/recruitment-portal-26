@@ -343,12 +343,19 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 0;
+  padding: 8px 0;
 }
 
 .cd-detail-item {
-  padding: 20px 24px;
+  padding: 16px 24px;
   border-right: 1px solid rgba(96, 165, 250, 0.1);
-  border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+  border-bottom: 1px solid rgba(96, 165, 250, 0.08);
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.cd-detail-item:hover {
+  background: rgba(37, 99, 235, 0.025);
 }
 
 .cd-detail-item:last-child,
@@ -356,19 +363,43 @@
   border-right: none;
 }
 
+/* section dividers between logical groups */
+.cd-details-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(96, 165, 250, 0.18) 15%,
+    rgba(96, 165, 250, 0.18) 85%,
+    transparent
+  );
+  margin: 4px 0;
+}
+
 .cd-detail-label {
-  display: block;
-  color: #5a7896;
-  font-size: 0.74rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #7a99b8;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 7px;
+  letter-spacing: 0.07em;
+  margin-bottom: 6px;
+}
+
+.cd-detail-label-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  stroke: #94b3cc;
+  opacity: 0.85;
 }
 
 .cd-detail-value {
-  color: #08284d;
-  font-size: 0.95rem;
+  color: #0f2d4a;
+  font-size: 0.93rem;
   font-weight: 600;
   line-height: 1.4;
   word-break: break-word;
@@ -377,7 +408,12 @@
 .cd-detail-value--mono {
   font-family: ui-monospace, Consolas, monospace;
   color: #2663e7;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  background: rgba(37, 99, 235, 0.07);
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  letter-spacing: 0.02em;
 }
 
 /* ── Department badges ── */
@@ -523,6 +559,7 @@
   width: 15px;
   height: 15px;
   flex-shrink: 0;
+  stroke: currentColor;
 }
 
 .cd-btn--primary {
@@ -1252,10 +1289,15 @@
 .cd-detail-value--prose {
   display: block;
   color: #375166;
-  font-size: 0.88rem;
+  font-size: 0.87rem;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.7;
   white-space: pre-wrap;
+  padding: 10px 14px;
+  background: rgba(239, 246, 255, 0.45);
+  border-radius: 10px;
+  border: 1px solid rgba(96, 165, 250, 0.12);
+  margin-top: 2px;
 }
 
 @media (max-width: 600px) {
